@@ -3,13 +3,21 @@ defmodule Blackjack do
   Documentation for Blackjack.
   """
 
+  use Application
   require Logger
 
   alias Blackjack.Player
-  alias Blackjack.Deck
+
+  def start(_type, _args) do
+    Blackjack.Supervisor.start_link
+  end
 
   def blackjack do
-    start()
+    Player.Info.add(Player.Info, :dealer)
+    Player.Info.add(Player.Info)
+    Player.Info.add(Player.Info)
+
+    start_game()
     turns()
     check_wins()
     ask_leave()
@@ -17,9 +25,9 @@ defmodule Blackjack do
     blackjack()
   end
 
-  def start do
+  def start_game do
     Logger.debug("Blackjack.start:")
-    info = Player.Info.get
+    info = Player.Info.get(Player.Info)
 
     Enum.each(info, fn {id, _} -> Player.deal(id) end)
     info
@@ -31,7 +39,7 @@ defmodule Blackjack do
 
   def turns do
     Logger.debug("Blackjack.turns:")
-    Player.Info.get
+    Player.Info.get(Player.Info)
     |> Stream.map(fn {id, _} -> {id, Player.turn(id)} end)
     |> Stream.flat_map(&expand_actions/1)
     |> Enum.each(fn {id, index, action} -> Player.apply_action(id, index, action) end)
@@ -39,7 +47,7 @@ defmodule Blackjack do
 
   def check_wins do
     Logger.debug("Blackjack.check_wins:")
-    info = Player.Info.get
+    info = Player.Info.get(Player.Info)
     [dealer_score] =
       info
       |> Stream.filter(fn {_, type} -> type == :dealer end)
@@ -57,7 +65,7 @@ defmodule Blackjack do
 
   def ask_leave do
     Logger.debug("Blackjack.ask_leave:")
-    Enum.each(Player.Info.get, &reset/1)
+    Enum.each(Player.Info.get(Player.Info), &reset/1)
     ref = Process.monitor(Player.Subsupervisor)
     Supervisor.stop(Player.Subsupervisor)
 
@@ -70,8 +78,8 @@ defmodule Blackjack do
     # TODO(DarinM223): remove leaving players
   end
 
-  defp reset({id, :dealer}), do: Player.Stash.reset(id)
-  defp reset({id, _}), do: Player.Stash.reset(id, Player.money(id))
+  defp reset({id, :dealer}), do: Player.Stash.reset(Player.Stash, id)
+  defp reset({id, _}), do: Player.Stash.reset(Player.Stash, id, Player.money(id))
 
   defp player_won(score, dealer_score) do
     cond do

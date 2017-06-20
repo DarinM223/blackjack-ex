@@ -15,7 +15,7 @@ defmodule Blackjack.Player.Worker do
   def init(id) do
     # Modifies exits to call terminate().
     Process.flag(:trap_exit, true)
-    state = Blackjack.Player.Stash.get(id)
+    state = Blackjack.Player.Stash.get(Blackjack.Player.Stash, id)
     {:ok, state}
   end
 
@@ -48,14 +48,14 @@ defmodule Blackjack.Player.Worker do
   def handle_cast(:deal, state) do
     Logger.debug("Blackjack.Player.Worker :deal: state: #{inspect(state)}")
     max_index = state.cards |> Map.keys |> Enum.max(fn -> -1 end)
-    cards = 1..2 |> Enum.map(fn _ -> Deck.draw end)
+    cards = Enum.map(1..2, fn _ -> Deck.draw(Deck) end)
     state = put_in(state.cards[max_index + 1], cards)
     {:noreply, state}
   end
 
   def handle_cast({:hit, index}, state) do
     Logger.debug("Blackjack.Player.Worker :hit: index: #{index} state: #{inspect(state)}")
-    {:noreply, update_in(state.cards[index], &[Deck.draw | &1])}
+    {:noreply, update_in(state.cards[index], &[Deck.draw(Deck) | &1])}
   end
 
   def handle_cast({:stand, _}, state) do
@@ -96,7 +96,7 @@ defmodule Blackjack.Player.Worker do
 
   def terminate(_reason, state) do
     Logger.debug("Blackjack.Player.Worker.terminate state: #{inspect(state)}")
-    Blackjack.Player.Stash.save(state.id, state)
+    Blackjack.Player.Stash.save(Blackjack.Player.Stash, state.id, state)
   end
 
   defp ask_action(_) do

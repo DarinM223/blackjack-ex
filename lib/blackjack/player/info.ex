@@ -1,37 +1,42 @@
 defmodule Blackjack.Player.Info do
+  use GenServer
+
   @default_type Application.get_env(:blackjack, :default_player_type)
 
-  def start_link(info) do
-    info = info |> Enum.map(&convert_to_tuple/1)
-    {max_id, _} = info |> Enum.max_by(fn {id, _} -> id end, fn -> {0, nil} end)
-    Agent.start_link(fn -> %{info: info, curr_id: max_id + 1} end, name: __MODULE__)
+  def start_link(opts \\ []) do
+    GenServer.start_link(__MODULE__, :ok, opts)
   end
 
-  def get do
-    Agent.get(__MODULE__, fn state -> state.info end)
+  def init(:ok) do
+    {:ok, {[], [], 0}}
   end
 
-  def add(type \\ @default_type) do
-    Agent.update(__MODULE__, fn %{info: info, curr_id: curr_id} ->
-      %{info: [{curr_id, type} | info], curr_id: curr_id + 1}
-    end)
+  def get(info) do
+    GenServer.call(info, :get)
   end
 
-  def remove(id) do
-    Agent.update(__MODULE__, fn state ->
-      update_in(state.info, &delete_id(&1, id))
-    end)
+  def add(info, type \\ @default_type) do
+    GenServer.call(info, {:add, type})
   end
 
-  defp convert_to_tuple({id, type}), do: {id, type}
-  defp convert_to_tuple(id), do: {id, @default_type}
+  def handle_call(:get, _from, {info, _, _} = state) do
+    {:reply, info, state}
+  end
 
-  defp delete_id([], _), do: []
-  defp delete_id([{curr_id, _} = h | t], id) do
-    if curr_id == id do
-      delete_id(t, id)
-    else
-      [h | delete_id(t, id)]
-    end
+  def handle_call({:add, type}, _from, {info, refs, curr_id}) do
+    {:ok, player} = Blackjack.Player.Subsupervisor.add(curr_id, type)
+    ref = Process.monitor(player)
+
+    info = [{curr_id, type} | info]
+    refs = [{curr_id, ref} | refs]
+    {:reply, player, {info, refs, curr_id + 1}}
+  end
+
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, {info, refs, curr_id}) do
+    {id, _} = List.keyfind(refs, ref, 1)
+    info = List.keydelete(info, id, 0)
+    refs = List.keydelete(refs, id, 0)
+
+    {:noreply, {info, refs, curr_id}}
   end
 end

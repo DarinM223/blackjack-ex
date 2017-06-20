@@ -7,7 +7,7 @@ defmodule Blackjack.Supervisor do
 
   def init(_) do
     children = [
-      supervisor(Blackjack.Player.Supervisor, [[{1, :dealer}, 2, 3]]),
+      supervisor(Blackjack.Player.Supervisor, []),
       supervisor(Blackjack.Deck.Supervisor, [])
     ]
 

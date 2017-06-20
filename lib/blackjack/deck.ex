@@ -13,27 +13,25 @@ defmodule Blackjack.Deck do
   Should be called by a deck supervisor to handle
   crashes in the deck worker.
   """
-  def start_link, do: Agent.start_link(fn -> new_deck() end, name: __MODULE__)
+  def start_link(opts \\ []) do
+    Agent.start_link(fn -> new_deck() end, opts)
+  end
 
   @doc """
   Draws a card from the deck.
   If the deck worker crashes, it retries
   the draw call after waiting a certain period of time.
   """
-  def draw(face_down \\ false) do
+  def draw(deck, face_down \\ false) do
     try do
-      if face_down do
-        draw_private = fn [h | t] ->
-          {%{h | public: false}, t}
-        end
-        Agent.get_and_update(__MODULE__, draw_private)
-      else
-        Agent.get_and_update(__MODULE__, fn [h | t] -> {h, t} end)
-      end
+      Agent.get_and_update(deck, fn
+        [h | t] when face_down -> {%{h | public: false}, t}
+        [h | t] -> {h, t}
+      end)
     catch
       :exit, _ ->
         :timer.sleep(@retry_time)
-        draw(face_down)
+        draw(deck, face_down)
     end
   end
 

@@ -3,45 +3,55 @@ defmodule InfoTest do
 
   alias Blackjack.Player.Info
 
-  test "starting with array of ids" do
-    {:ok, _} = Info.start_link([1, 2, 3])
-    assert Info.get == [{1, :human}, {2, :human}, {3, :human}]
+  require Logger
+
+  setup do
+    Application.stop(:blackjack)
+    Application.start(:blackjack)
+
+    {:ok, info} = Info.start_link
+    {:ok, info: info}
   end
 
-  test "starting with array of (id, type) tuples" do
-    {:ok, _} = Info.start_link([{1, :human}, {2, :human}, {3, :human}])
-    assert Info.get == [{1, :human}, {2, :human}, {3, :human}]
+  test "add to empty array", %{info: info} do
+    Enum.map(1..3, fn _ -> Info.add(info) end)
+    results = Info.get(info)
+    assert List.keyfind(results, 2, 0) != nil
+    assert List.keyfind(results, 1, 0) != nil
+    assert List.keyfind(results, 0, 0) != nil
   end
 
-  test "add to empty array" do
-    {:ok, _} = Info.start_link([])
-    1..3 |> Enum.map(fn _ -> Info.add end)
-    results = Info.get
-    assert results |> List.keyfind(3, 0) != nil
-    assert results |> List.keyfind(2, 0) != nil
-    assert results |> List.keyfind(1, 0) != nil
+  test "add different types", %{info: info} do
+    Info.add(info, :alien)
+    Info.add(info, :borg)
+    Info.add(info, :donkey)
+
+    assert {0, :alien} in Info.get(info)
+    assert {1, :borg} in Info.get(info)
+    assert {2, :donkey} in Info.get(info)
   end
 
-  test "add different types" do
-    {:ok, _} = Info.start_link([])
-    Info.add(:alien)
-    Info.add(:borg)
-    Info.add(:donkey)
+  test "removes from array", %{info: info} do
+    0..3
+    |> Stream.map(fn id -> {id, Info.add(info)} end)
+    |> Enum.each(&kill_process(&1, [0, 2]))
 
-    assert {1, :alien} in Info.get
-    assert {2, :borg} in Info.get
-    assert {3, :donkey} in Info.get
+    results = Info.get(info)
+
+    Logger.debug("results: #{inspect results}")
+
+    assert List.keyfind(results, 0, 0) == nil
+    assert List.keyfind(results, 1, 0) != nil
+    assert List.keyfind(results, 2, 0) == nil
+    assert List.keyfind(results, 3, 0) != nil
   end
 
-  test "removes from array" do
-    {:ok, _} = Info.start_link([1, 2, 3, 4])
-    Info.remove(1)
-    Info.remove(3)
-    results = Info.get
-
-    assert results |> List.keyfind(1, 0) == nil
-    assert results |> List.keyfind(2, 0) != nil
-    assert results |> List.keyfind(3, 0) == nil
-    assert results |> List.keyfind(4, 0) != nil
+  defp kill_process({id, process}, kill_list) do
+    Logger.debug("Process: #{inspect process}")
+    ref = Process.monitor(process)
+    if id in kill_list do
+      GenServer.stop(process)
+      assert_receive {:DOWN, ^ref, _, _, _}
+    end
   end
 end

@@ -6,7 +6,7 @@ defmodule Blackjack.Deck.Supervisor do
   end
 
   def init(_) do
-    children = [worker(Blackjack.Deck, [])]
+    children = [worker(Blackjack.Deck, [[name: Blackjack.Deck]])]
     supervise(children, strategy: :one_for_one)
   end
 end

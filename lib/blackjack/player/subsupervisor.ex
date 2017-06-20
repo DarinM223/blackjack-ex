@@ -3,20 +3,21 @@ defmodule Blackjack.Player.Subsupervisor do
   use Supervisor
 
   def start_link do
-    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+    Supervisor.start_link(__MODULE__, :ok, name: __MODULE__)
   end
 
-  def init(_) do
-    info = Player.Info.get
-    children = info |> Enum.map(&make_worker/1)
-
-    supervise(children, strategy: :one_for_one)
+  def init(:ok) do
+    supervise([], strategy: :one_for_one)
   end
 
-  def stop, do: Supervisor.stop(__MODULE__)
+  def add(id, type) do
+    Supervisor.start_child(__MODULE__, make_worker(id, type))
+  end
 
-  defp make_worker({id, type}) do
+  defp make_worker(id, type) do
     name = Player.registry_name(id)
-    worker(Player.worker_type(type), [id, [name: name]], id: inspect(name))
+    worker(Player.worker_type(type),
+           [id, [name: name]],
+           [id: inspect(name), restart: :transient])
   end
 end
