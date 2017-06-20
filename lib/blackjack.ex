@@ -13,9 +13,9 @@ defmodule Blackjack do
   end
 
   def start_blackjack do
-    Player.Info.add(Player.Info, :dealer)
-    Player.Info.add(Player.Info)
-    Player.Info.add(Player.Info)
+    Player.Info.add(Player.Info, Player.Subsupervisor, :dealer)
+    Player.Info.add(Player.Info, Player.Subsupervisor)
+    Player.Info.add(Player.Info, Player.Subsupervisor)
 
     blackjack()
   end
@@ -74,7 +74,7 @@ defmodule Blackjack do
     |> Enum.each(&ask_leave/1)
   end
 
-  defp ask_leave({:ok, id, :dealer}), do: :ok
+  defp ask_leave({:ok, _, :dealer}), do: :ok
 
   defp ask_leave({:ok, id, :human}) do
     input = IO.gets("Do you want to leave? (y/n)") |> String.trim

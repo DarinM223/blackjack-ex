@@ -35,7 +35,7 @@ defmodule Blackjack.Player.Dealer do
   end
 
   def handle_cast(:deal, state) do
-    cards = 1..2 |> Enum.map(fn _ -> Deck.draw(Deck) end)
+    cards = Enum.map(1..2, fn _ -> Deck.draw(Deck) end)
     state = put_in(state.cards[0], cards)
     {:noreply, state}
   end

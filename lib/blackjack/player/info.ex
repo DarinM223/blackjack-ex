@@ -17,17 +17,17 @@ defmodule Blackjack.Player.Info do
     GenServer.call(info, :get)
   end
 
-  def add(info, type \\ @default_type) do
-    GenServer.call(info, {:add, type})
+  def add(info, subsupervisor, type \\ @default_type) do
+    GenServer.call(info, {:add, subsupervisor, type})
   end
 
   def handle_call(:get, _from, {info, _, _} = state) do
     {:reply, info, state}
   end
 
-  def handle_call({:add, type}, _from, {info, refs, curr_id} = state) do
+  def handle_call({:add, subsupervisor, type}, _from, {info, refs, curr_id} = state) do
     Logger.debug("Blackjack.Player.Info :add: state: #{inspect(state)}")
-    {:ok, player} = Blackjack.Player.Subsupervisor.add(curr_id, type)
+    {:ok, player} = Blackjack.Player.Subsupervisor.add(subsupervisor, curr_id, type)
     ref = Process.monitor(player)
 
     info = [{curr_id, type} | info]

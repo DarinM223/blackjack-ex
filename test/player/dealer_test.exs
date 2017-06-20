@@ -7,7 +7,7 @@ defmodule DealerTest do
     Application.stop(:blackjack)
     Application.start(:blackjack)
 
-    Player.Info.add(Player.Info, :dealer)
+    Player.Info.add(Player.Info, Player.Subsupervisor, :dealer)
     :ok
   end
 

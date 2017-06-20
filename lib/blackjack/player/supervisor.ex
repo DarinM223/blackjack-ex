@@ -12,7 +12,7 @@ defmodule Blackjack.Player.Supervisor do
       supervisor(Registry, [:unique, :player_registry]),
       worker(Blackjack.Player.Stash, [[name: Blackjack.Player.Stash]]),
       worker(Blackjack.Player.Info, [[name: Blackjack.Player.Info]]),
-      supervisor(Blackjack.Player.Subsupervisor, [])
+      supervisor(Blackjack.Player.Subsupervisor, [[name: Blackjack.Player.Subsupervisor]])
     ]
 
     supervise(children, strategy: :one_for_one)

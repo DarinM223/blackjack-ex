@@ -2,16 +2,16 @@ defmodule Blackjack.Player.Subsupervisor do
   alias Blackjack.Player
   use Supervisor
 
-  def start_link do
-    Supervisor.start_link(__MODULE__, :ok, name: __MODULE__)
+  def start_link(opts \\ []) do
+    Supervisor.start_link(__MODULE__, :ok, opts)
   end
 
   def init(:ok) do
     supervise([], strategy: :one_for_one)
   end
 
-  def add(id, type) do
-    Supervisor.start_child(__MODULE__, make_worker(id, type))
+  def add(subsupervisor, id, type) do
+    Supervisor.start_child(subsupervisor, make_worker(id, type))
   end
 
   defp make_worker(id, type) do
