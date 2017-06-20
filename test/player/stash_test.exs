@@ -17,10 +17,4 @@ defmodule StashTest do
     Stash.save(stash, player.id, %{player | money: 1})
     assert Stash.get(stash, player.id) == %{id: 1, money: 1, cards: %{}, bets: %{}}
   end
-
-  test "reset will reset player with updated money", %{stash: stash} do
-    player = Stash.get(stash, 1)
-    Stash.reset(stash, player.id, 1)
-    assert Stash.get(stash, player.id) == %{id: 1, money: 1, cards: %{}, bets: %{}}
-  end
 end

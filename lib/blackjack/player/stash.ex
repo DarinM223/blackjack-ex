@@ -14,7 +14,7 @@ defmodule Blackjack.Player.Stash do
       if Map.has_key?(stash, id) do
         {Map.get(stash, id), stash}
       else
-        player = default_player(id)
+        player = Blackjack.Player.default(id, @default_money)
         stash = Map.put(stash, id, player)
         {player, stash}
       end
@@ -22,21 +22,9 @@ defmodule Blackjack.Player.Stash do
   end
 
   @doc """
-  Resets the player data with the option of passing
-  in an updated money value to the reset player.
-  """
-  def reset(stash, id, money \\ @default_money) do
-    save(stash, id, default_player(id, money))
-  end
-
-  @doc """
   Saves a player state in the stash.
   """
   def save(stash, id, value) do
     Agent.update(stash, &Map.put(&1, id, value))
-  end
-
-  defp default_player(id, money \\ @default_money) do
-    %{id: id, money: money, cards: %{}, bets: %{}}
   end
 end

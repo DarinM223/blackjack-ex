@@ -12,11 +12,15 @@ defmodule Blackjack do
     Blackjack.Supervisor.start_link
   end
 
-  def blackjack do
+  def start_blackjack do
     Player.Info.add(Player.Info, :dealer)
     Player.Info.add(Player.Info)
     Player.Info.add(Player.Info)
 
+    blackjack()
+  end
+
+  defp blackjack do
     start_game()
     turns()
     check_wins()
@@ -25,19 +29,19 @@ defmodule Blackjack do
     blackjack()
   end
 
-  def start_game do
+  defp start_game do
     Logger.debug("Blackjack.start:")
     info = Player.Info.get(Player.Info)
 
     Enum.each(info, fn {id, _} -> Player.deal(id) end)
     info
     |> Stream.filter(fn {_, type} -> type != :dealer end)
-    |> Stream.map(fn {id, _} -> {id, Player.bet(id)} end)
+    |> Stream.map(fn {id, _} -> {id, Player.ask_bet(id)} end)
     |> Stream.flat_map(&expand_actions/1)
     |> Enum.each(fn {id, index, bet} -> Player.bet(id, index, bet) end)
   end
 
-  def turns do
+  defp turns do
     Logger.debug("Blackjack.turns:")
     Player.Info.get(Player.Info)
     |> Stream.map(fn {id, _} -> {id, Player.turn(id)} end)
@@ -45,7 +49,7 @@ defmodule Blackjack do
     |> Enum.each(fn {id, index, action} -> Player.apply_action(id, index, action) end)
   end
 
-  def check_wins do
+  defp check_wins do
     Logger.debug("Blackjack.check_wins:")
     info = Player.Info.get(Player.Info)
     [dealer_score] =
@@ -63,23 +67,23 @@ defmodule Blackjack do
     |> Enum.each(fn {id, index, action} -> Player.apply_action(id, index, action) end)
   end
 
-  def ask_leave do
+  defp ask_leave do
     Logger.debug("Blackjack.ask_leave:")
-    Enum.each(Player.Info.get(Player.Info), &reset/1)
-    ref = Process.monitor(Player.Subsupervisor)
-    Supervisor.stop(Player.Subsupervisor)
-
-    # Wait until subsupervisor is stopped.
-    receive do {:DOWN, ^ref, _, _, _} -> nil end
-
-    Logger.debug("Stopped player subsupervisor")
-
-    # TODO(DarinM223): ask players if they want to leave
-    # TODO(DarinM223): remove leaving players
+    Player.Info.get(Player.Info)
+    |> Stream.map(fn {id, type} -> {Player.reset(id), id, type} end)
+    |> Enum.each(&ask_leave/1)
   end
 
-  defp reset({id, :dealer}), do: Player.Stash.reset(Player.Stash, id)
-  defp reset({id, _}), do: Player.Stash.reset(Player.Stash, id, Player.money(id))
+  defp ask_leave({:ok, id, :dealer}), do: :ok
+
+  defp ask_leave({:ok, id, :human}) do
+    input = IO.gets("Do you want to leave? (y/n)") |> String.trim
+    case input do
+      "y" -> GenServer.stop(Player.registry_name(id))
+      "n" -> :ok
+      _ -> ask_leave({:ok, id, :player})
+    end
+  end
 
   defp player_won(score, dealer_score) do
     cond do

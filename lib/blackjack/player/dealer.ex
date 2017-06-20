@@ -1,6 +1,8 @@
 defmodule Blackjack.Player.Dealer do
   use GenServer
 
+  require Logger
+
   alias Blackjack.Player
   alias Blackjack.Deck
 
@@ -15,13 +17,21 @@ defmodule Blackjack.Player.Dealer do
   end
 
   def handle_call(:turn, _from, state) do
+    Logger.debug("Blackjack.Player.Dealer :turn: state: #{inspect(state)}")
     score = Player.Score.score(state.cards[0])
     action = if score >= 17, do: :stand, else: :hit
     {:reply, [action], state}
   end
 
   def handle_call(:cards, _from, state) do
+    Logger.debug("Blackjack.Player.Dealer :cards: state: #{inspect(state)}")
     {:reply, state.cards, state}
+  end
+
+  def handle_call(:reset, _from, state) do
+    Logger.debug("Blackjack.Player.Dealer :reset: state: #{inspect(state)}")
+    state = Blackjack.Player.default(state.id, state.money)
+    {:reply, :ok, state}
   end
 
   def handle_cast(:deal, state) do

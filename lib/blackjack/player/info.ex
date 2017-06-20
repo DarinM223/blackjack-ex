@@ -1,6 +1,8 @@
 defmodule Blackjack.Player.Info do
   use GenServer
 
+  require Logger
+
   @default_type Application.get_env(:blackjack, :default_player_type)
 
   def start_link(opts \\ []) do
@@ -23,7 +25,8 @@ defmodule Blackjack.Player.Info do
     {:reply, info, state}
   end
 
-  def handle_call({:add, type}, _from, {info, refs, curr_id}) do
+  def handle_call({:add, type}, _from, {info, refs, curr_id} = state) do
+    Logger.debug("Blackjack.Player.Info :add: state: #{inspect(state)}")
     {:ok, player} = Blackjack.Player.Subsupervisor.add(curr_id, type)
     ref = Process.monitor(player)
 
@@ -32,7 +35,8 @@ defmodule Blackjack.Player.Info do
     {:reply, player, {info, refs, curr_id + 1}}
   end
 
-  def handle_info({:DOWN, ref, :process, _pid, _reason}, {info, refs, curr_id}) do
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, {info, refs, curr_id} = state) do
+    Logger.debug("Blackjack.Player.Info :DOWN: state: #{inspect(state)}")
     {id, _} = List.keyfind(refs, ref, 1)
     info = List.keydelete(info, id, 0)
     refs = List.keydelete(refs, id, 0)

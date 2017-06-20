@@ -8,6 +8,13 @@ defmodule Blackjack.Player do
   @retry_time 100
 
   @doc """
+  Returns a default player value.
+  """
+  def default(id, money) do
+    %{id: id, money: money, cards: %{}, bets: %{}}
+  end
+
+  @doc """
   Looks up player's name from id.
   """
   def registry_name(id) do
@@ -20,10 +27,10 @@ defmodule Blackjack.Player do
     retry(&GenServer.call/3, [registry_name(id), :turn, :infinity])
   end
 
-  def bet(id) do
-    Logger.debug("Blackjack.Player.bet: id: #{id}")
+  def ask_bet(id) do
+    Logger.debug("Blackjack.Player.ask_bet: id: #{id}")
     IO.puts("Player #{id}'s bet")
-    retry(&GenServer.call/3, [registry_name(id), :bet, :infinity])
+    retry(&GenServer.call/3, [registry_name(id), :ask_bet, :infinity])
   end
 
   def bet(id, index, amount) do
@@ -44,6 +51,11 @@ defmodule Blackjack.Player do
   def deal(id) do
     Logger.debug("Blackjack.Player.deal: id: #{id}")
     retry(&GenServer.cast/2, [registry_name(id), :deal])
+  end
+
+  def reset(id) do
+    Logger.debug("Blackjack.Player.reset: id: #{id}")
+    retry(&GenServer.call/2, [registry_name(id), :reset])
   end
 
   def apply_action(id, index, action) do

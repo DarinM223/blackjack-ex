@@ -62,4 +62,13 @@ defmodule PlayerTest do
     new_cards = Player.cards(0)
     assert old_cards == new_cards
   end
+
+  test "player reset removes cards" do
+    Player.deal(0)
+    Player.bet(0, 0, 50)
+    Player.apply_action(0, 0, :win)
+    Player.reset(0)
+    assert Player.money(0) == 150
+    assert Player.cards(0) == %{}
+  end
 end

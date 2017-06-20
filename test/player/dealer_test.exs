@@ -42,4 +42,10 @@ defmodule DealerTest do
     assert Player.Score.score(Player.cards(0)[0]) >= 17
     assert Player.turn(0) == [:stand]
   end
+
+  test "dealer reset removes cards" do
+    Player.deal(0)
+    Player.reset(0)
+    assert Player.cards(0) == %{}
+  end
 end

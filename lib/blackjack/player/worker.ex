@@ -39,10 +39,16 @@ defmodule Blackjack.Player.Worker do
     {:reply, state.cards, state}
   end
 
-  def handle_call(:bet, _from, state) do
-    Logger.debug("Blackjack.Player.Worker :bet: state: #{inspect(state)}")
+  def handle_call(:ask_bet, _from, state) do
+    Logger.debug("Blackjack.Player.Worker :ask_bet: state: #{inspect(state)}")
     bets = Enum.map(state.cards, fn _ -> ask_bet() end)
     {:reply, bets, state}
+  end
+
+  def handle_call(:reset, _from, state) do
+    Logger.debug("Blackjack.Player.Worker :reset: state: #{inspect(state)}")
+    state = Blackjack.Player.default(state.id, state.money)
+    {:reply, :ok, state}
   end
 
   def handle_cast(:deal, state) do
