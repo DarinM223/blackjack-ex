@@ -1,5 +1,5 @@
 defmodule InfoTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
 
   alias Blackjack.Player.Info
   alias Blackjack.Player.Subsupervisor
@@ -10,12 +10,12 @@ defmodule InfoTest do
     Application.stop(:blackjack)
     Application.start(:blackjack)
 
-    {:ok, info} = Info.start_link
+    {:ok, info} = Info.start_link([subsupervisor: Subsupervisor])
     {:ok, info: info}
   end
 
   test "add to empty array", %{info: info} do
-    Enum.map(1..3, fn _ -> Info.add(info, Subsupervisor) end)
+    Enum.map(1..3, fn _ -> Info.add(info) end)
     results = Info.get(info)
     assert List.keyfind(results, 2, 0) != nil
     assert List.keyfind(results, 1, 0) != nil
@@ -23,9 +23,9 @@ defmodule InfoTest do
   end
 
   test "add different types", %{info: info} do
-    Info.add(info, Subsupervisor, :alien)
-    Info.add(info, Subsupervisor, :borg)
-    Info.add(info, Subsupervisor, :donkey)
+    Info.add(info, :alien)
+    Info.add(info, :borg)
+    Info.add(info, :donkey)
 
     assert {0, :alien} in Info.get(info)
     assert {1, :borg} in Info.get(info)
@@ -34,7 +34,7 @@ defmodule InfoTest do
 
   test "removes from array", %{info: info} do
     0..3
-    |> Stream.map(fn id -> {id, Info.add(info, Subsupervisor)} end)
+    |> Stream.map(fn id -> {id, Info.add(info)} end)
     |> Enum.each(&kill_process(&1, [0, 2]))
 
     results = Info.get(info)

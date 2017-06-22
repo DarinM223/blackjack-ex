@@ -7,9 +7,9 @@ defmodule PlayerTest do
     Application.stop(:blackjack)
     Application.start(:blackjack)
 
-    Player.Info.add(Player.Info, Player.Subsupervisor)
-    Player.Info.add(Player.Info, Player.Subsupervisor)
-    Player.Info.add(Player.Info, Player.Subsupervisor)
+    Player.Info.add(Player.Info)
+    Player.Info.add(Player.Info)
+    Player.Info.add(Player.Info)
     :ok
   end
 

@@ -6,8 +6,9 @@ defmodule Blackjack.Supervisor do
   end
 
   def init(:ok) do
+    deps = [deck: Blackjack.Deck]
     children = [
-      supervisor(Blackjack.Player.Supervisor, []),
+      supervisor(Blackjack.Player.Supervisor, [deps]),
       supervisor(Blackjack.Deck.Supervisor, [])
     ]
 

@@ -1,3 +1,4 @@
+# TODO(DarinM223): remove
 defmodule Blackjack.Player.Dealer do
   use GenServer
 
@@ -6,47 +7,48 @@ defmodule Blackjack.Player.Dealer do
   alias Blackjack.Player
   alias Blackjack.Deck
 
-  def start_link(id, opts \\ []) do
-    GenServer.start_link(__MODULE__, id, opts)
+  def start_link(id, deps, opts \\ []) do
+    GenServer.start_link(__MODULE__, {id, deps}, opts)
   end
 
-  def init(id) do
+  def init({id, deps}) do
     Process.flag(:trap_exit, true)
-    state = Blackjack.Player.Stash.get(Blackjack.Player.Stash, id)
-    {:ok, state}
+    dealer = Blackjack.Player.Stash.get(deps[:stash], id)
+    {:ok, {dealer, deps}}
   end
 
-  def handle_call(:turn, _from, state) do
-    Logger.debug("Blackjack.Player.Dealer :turn: state: #{inspect(state)}")
-    score = Player.Score.score(state.cards[0])
+  def handle_call(:turn, _from, {dealer, _} = state) do
+    Logger.debug("Blackjack.Player.Dealer :turn: state: #{inspect(dealer)}")
+    score = Player.Score.score(dealer.cards[0])
     action = if score >= 17, do: :stand, else: :hit
     {:reply, [action], state}
   end
 
-  def handle_call(:cards, _from, state) do
-    Logger.debug("Blackjack.Player.Dealer :cards: state: #{inspect(state)}")
-    {:reply, state.cards, state}
+  def handle_call(:cards, _from, {dealer, _} = state) do
+    Logger.debug("Blackjack.Player.Dealer :cards: state: #{inspect(dealer)}")
+    {:reply, dealer.cards, state}
   end
 
-  def handle_call(:reset, _from, state) do
-    Logger.debug("Blackjack.Player.Dealer :reset: state: #{inspect(state)}")
-    state = Blackjack.Player.default(state.id, state.money)
-    {:reply, :ok, state}
+  def handle_call(:reset, _from, {dealer, deps}) do
+    Logger.debug("Blackjack.Player.Dealer :reset: state: #{inspect(dealer)}")
+    dealer = Blackjack.Player.default(dealer.id, dealer.money)
+    {:reply, :ok, {dealer, deps}}
   end
 
-  def handle_cast(:deal, state) do
-    cards = Enum.map(1..2, fn _ -> Deck.draw(Deck) end)
-    state = put_in(state.cards[0], cards)
-    {:noreply, state}
+  def handle_cast(:deal, {dealer, deps}) do
+    cards = Enum.map(1..2, fn _ -> Deck.draw(deps[:deck]) end)
+    dealer = put_in(dealer.cards[0], cards)
+    {:noreply, {dealer, deps}}
   end
 
-  def handle_cast({:hit, _}, state) do
-    {:noreply, update_in(state.cards[0], &[Deck.draw(Deck) | &1])}
+  def handle_cast({:hit, _}, {dealer, deps}) do
+    dealer = update_in(dealer.cards[0], &[Deck.draw(deps[:deck]) | &1])
+    {:noreply, {dealer, deps}}
   end
 
   def handle_cast({:stand, _}, state), do: {:noreply, state}
 
-  def terminate(_reason, state) do
-    Blackjack.Player.Stash.save(Blackjack.Player.Stash, state.id, state)
+  def terminate(_reason, {dealer, deps}) do
+    Blackjack.Player.Stash.save(deps[:stash], dealer.id, dealer)
   end
 end

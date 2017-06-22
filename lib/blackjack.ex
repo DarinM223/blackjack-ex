@@ -13,9 +13,9 @@ defmodule Blackjack do
   end
 
   def start_blackjack do
-    Player.Info.add(Player.Info, Player.Subsupervisor, :dealer)
-    Player.Info.add(Player.Info, Player.Subsupervisor)
-    Player.Info.add(Player.Info, Player.Subsupervisor)
+    Player.Info.add(Player.Info, :dealer)
+    Player.Info.add(Player.Info)
+    Player.Info.add(Player.Info)
 
     blackjack()
   end

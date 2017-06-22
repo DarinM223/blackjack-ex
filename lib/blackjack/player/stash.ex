@@ -3,6 +3,7 @@ defmodule Blackjack.Player.Stash do
     Agent.start_link(fn -> %{} end, opts)
   end
 
+  # TODO(DarinM223): refactor into config
   @default_money 100
 
   @doc """

@@ -2,22 +2,22 @@ defmodule Blackjack.Player.Subsupervisor do
   alias Blackjack.Player
   use Supervisor
 
-  def start_link(opts \\ []) do
-    Supervisor.start_link(__MODULE__, :ok, opts)
+  require Logger
+
+  def start_link(deps, opts \\ []) do
+    Supervisor.start_link(__MODULE__, deps, opts)
   end
 
-  def init(:ok) do
-    supervise([], strategy: :one_for_one)
+  def init(deps) do
+    children = [
+      worker(Player.Worker, [deps], restart: :transient)
+    ]
+    supervise(children, strategy: :simple_one_for_one)
   end
 
   def add(subsupervisor, id, type) do
-    Supervisor.start_child(subsupervisor, make_worker(id, type))
-  end
-
-  defp make_worker(id, type) do
     name = Player.registry_name(id)
-    worker(Player.worker_type(type),
-           [id, [name: name]],
-           [id: inspect(name), restart: :transient])
+    Logger.debug("Adding id: #{inspect(id)}, type: #{inspect(type)} as name: #{inspect(name)}")
+    Supervisor.start_child(subsupervisor, [type, id, [name: name]])
   end
 end
