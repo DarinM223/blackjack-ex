@@ -8,7 +8,6 @@ defmodule InfoTest do
   require Logger
 
   setup context do
-    Logger.info("Testing with name: #{context.test}")
     {:ok, _} = Testing.start(context.test)
     {:ok, test: context.test}
   end

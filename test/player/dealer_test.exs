@@ -1,51 +1,58 @@
 defmodule DealerTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
 
   alias Blackjack.Player
+  alias Blackjack.Testing
 
-  setup do
-    Application.stop(:blackjack)
-    Application.start(:blackjack)
+  setup context do
+    {:ok, _} = Testing.start(context.test)
 
-    Player.Info.add(Player.Info, :dealer)
-    :ok
+    info = Testing.name(context.test, :info)
+    Player.Info.add(info, :dealer)
+    {:ok, test: context.test}
   end
 
-  test "dealer receives two cards on deal" do
-    Player.deal(0)
-    assert length(Player.cards(0)[0]) == 2
+  test "dealer receives two cards on deal", %{test: test} do
+    registry = Testing.name(test, :registry)
+    Player.deal(0, registry)
+    assert length(Player.cards(0, registry)[0]) == 2
   end
 
-  test "dealer adds card on hit" do
-    Player.deal(0)
-    Player.apply_action(0, 0, :hit)
-    assert length(Player.cards(0)[0]) == 3
+  test "dealer adds card on hit", %{test: test} do
+    registry = Testing.name(test, :registry)
+    Player.deal(0, registry)
+    Player.apply_action(0, 0, :hit, registry)
+    assert length(Player.cards(0, registry)[0]) == 3
   end
 
-  test "dealer stand does nothing" do
-    Player.deal(0)
-    old_cards = Player.cards(0)
-    Player.apply_action(0, 0, :stand)
-    new_cards = Player.cards(0)
+  test "dealer stand does nothing", %{test: test} do
+    registry = Testing.name(test, :registry)
+    Player.deal(0, registry)
+    old_cards = Player.cards(0, registry)
+    Player.apply_action(0, 0, :stand, registry)
+    new_cards = Player.cards(0, registry)
     assert old_cards == new_cards
   end
 
-  test "dealer hits if score < 17" do
-    Player.deal(0)
-    assert Player.Score.score(Player.cards(0)[0]) < 17
-    assert Player.turn(0) == [:hit]
+  test "dealer hits if score < 17", %{test: test} do
+    registry = Testing.name(test, :registry)
+    Player.deal(0, registry)
+    assert Player.Score.score(Player.cards(0, registry)[0]) < 17
+    assert Player.turn(0, registry) == [:hit]
   end
 
-  test "dealer stands if score >= 17" do
-    Player.deal(0)
-    Enum.each(1..4, fn _ -> Player.apply_action(0, 0, :hit) end)
-    assert Player.Score.score(Player.cards(0)[0]) >= 17
-    assert Player.turn(0) == [:stand]
+  test "dealer stands if score >= 17", %{test: test} do
+    registry = Testing.name(test, :registry)
+    Player.deal(0, registry)
+    Enum.each(1..4, fn _ -> Player.apply_action(0, 0, :hit, registry) end)
+    assert Player.Score.score(Player.cards(0, registry)[0]) >= 17
+    assert Player.turn(0, registry) == [:stand]
   end
 
-  test "dealer reset removes cards" do
-    Player.deal(0)
-    Player.reset(0)
-    assert Player.cards(0) == %{}
+  test "dealer reset removes cards", %{test: test} do
+    registry = Testing.name(test, :registry)
+    Player.deal(0, registry)
+    Player.reset(0, registry)
+    assert Player.cards(0, registry) == %{}
   end
 end
