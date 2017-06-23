@@ -3,28 +3,18 @@ defmodule Blackjack.Player.Supervisor do
 
   @default_type Application.get_env(:blackjack, :default_player_type)
 
-  def start_link(ids) do
-    Supervisor.start_link(__MODULE__, ids, name: __MODULE__)
+  def start_link(deps) do
+    Supervisor.start_link(__MODULE__, deps)
   end
 
-  def init(ids) do
+  def init(deps) do
     children = [
-      supervisor(Registry, [:unique, :player_registry]),
-      worker(Blackjack.Player.Stash, []),
-      worker(Blackjack.Player.Info, [ids]),
-      supervisor(Blackjack.Player.Subsupervisor, [])
+      supervisor(Registry, [:unique, deps[:registry]]),
+      worker(Blackjack.Player.Stash, [[name: deps[:stash]]]),
+      worker(Blackjack.Player.Info, [deps, [name: deps[:info]]]),
+      supervisor(Blackjack.Player.Subsupervisor, [deps, [name: deps[:subsupervisor]]])
     ]
 
     supervise(children, strategy: :one_for_one)
-  end
-
-  def add_player(type \\ @default_type) do
-    Blackjack.Player.Info.add(type)
-    Blackjack.Player.Subsupervisor.stop
-  end
-
-  def remove_player(id) do
-    Blackjack.Player.Info.remove(id)
-    Blackjack.Player.Subsupervisor.stop
   end
 end

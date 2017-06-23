@@ -1,12 +1,12 @@
 defmodule Blackjack.Deck.Supervisor do
   use Supervisor
 
-  def start_link do
-    Supervisor.start_link(__MODULE__, [], name: __MODULE__)
+  def start_link(deps) do
+    Supervisor.start_link(__MODULE__, deps)
   end
 
-  def init(_) do
-    children = [worker(Blackjack.Deck, [])]
+  def init(deps) do
+    children = [worker(Blackjack.Deck, [[name: deps[:deck]]])]
     supervise(children, strategy: :one_for_one)
   end
 end

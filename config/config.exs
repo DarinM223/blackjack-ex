@@ -30,4 +30,8 @@ use Mix.Config
 #     import_config "#{Mix.env}.exs"
 
 config :logger, backends: [:console], compile_time_purge_level: :debug
-config :blackjack, default_player_type: :human
+config :blackjack, [
+  default_player_type: :human,
+  default_registry: :player_registry,
+  default_money: 100
+]
