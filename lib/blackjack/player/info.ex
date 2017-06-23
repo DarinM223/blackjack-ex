@@ -27,7 +27,6 @@ defmodule Blackjack.Player.Info do
 
   def handle_call({:add, type}, _from, {info, refs, curr_id, deps} = state) do
     Logger.debug("Blackjack.Player.Info :add: state: #{inspect(state)}")
-    supervisor = deps[:subsupervisor]
     {:ok, player} = Blackjack.Player.Subsupervisor.add(deps[:subsupervisor], curr_id, type)
     ref = Process.monitor(player)
 

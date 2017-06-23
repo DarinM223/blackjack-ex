@@ -6,8 +6,7 @@ defmodule Blackjack.Player do
   require Logger
 
   @retry_time 100
-  # TODO(DarinM223): refactor into config
-  @default_registry :player_registry
+  @default_registry Application.get_env(:blackjack, :default_registry)
 
   @doc """
   Returns a default player value.

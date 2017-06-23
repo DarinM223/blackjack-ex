@@ -3,8 +3,7 @@ defmodule Blackjack.Player.Stash do
     Agent.start_link(fn -> %{} end, opts)
   end
 
-  # TODO(DarinM223): refactor into config
-  @default_money 100
+  @default_money Application.get_env(:blackjack, :default_money)
 
   @doc """
   If player_id exists in stash, return the value in the stash,
