@@ -1,20 +1,20 @@
 defmodule InfoTest do
-  use ExUnit.Case, async: false
+  use ExUnit.Case, async: true
 
   alias Blackjack.Player.Info
   alias Blackjack.Player.Subsupervisor
+  alias Blackjack.Testing
 
   require Logger
 
-  setup do
-    Application.stop(:blackjack)
-    Application.start(:blackjack)
-
-    {:ok, info} = Info.start_link([subsupervisor: Subsupervisor])
-    {:ok, info: info}
+  setup context do
+    Logger.info("Testing with name: #{context.test}")
+    {:ok, _} = Testing.start(context.test)
+    {:ok, test: context.test}
   end
 
-  test "add to empty array", %{info: info} do
+  test "add to empty array", %{test: test} do
+    info = Testing.name(test, :info)
     Enum.map(1..3, fn _ -> Info.add(info) end)
     results = Info.get(info)
     assert List.keyfind(results, 2, 0) != nil
@@ -22,7 +22,8 @@ defmodule InfoTest do
     assert List.keyfind(results, 0, 0) != nil
   end
 
-  test "add different types", %{info: info} do
+  test "add different types", %{test: test} do
+    info = Testing.name(test, :info)
     Info.add(info, :alien)
     Info.add(info, :borg)
     Info.add(info, :donkey)
@@ -32,7 +33,8 @@ defmodule InfoTest do
     assert {2, :donkey} in Info.get(info)
   end
 
-  test "removes from array", %{info: info} do
+  test "removes from array", %{test: test} do
+    info = Testing.name(test, :info)
     0..3
     |> Stream.map(fn id -> {id, Info.add(info)} end)
     |> Enum.each(&kill_process(&1, [0, 2]))
