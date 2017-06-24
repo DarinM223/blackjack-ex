@@ -7,8 +7,8 @@ defmodule Blackjack.Player.Supervisor do
 
   @default_type Application.get_env(:blackjack, :default_player_type)
 
-  def start_link(deps) do
-    Supervisor.start_link(__MODULE__, deps)
+  def start_link(deps, opts \\ []) do
+    Supervisor.start_link(__MODULE__, deps, opts)
   end
 
   def init(deps) do

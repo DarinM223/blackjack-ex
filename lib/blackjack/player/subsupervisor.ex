@@ -24,9 +24,8 @@ defmodule Blackjack.Player.Subsupervisor do
   @doc """
   Adds a player worker to the supervisor.
   """
-  def add(subsupervisor, id, type, deps) do
-    name = Player.registry_name(id, deps[:registry])
-    Logger.debug("Adding id: #{inspect(id)}, type: #{inspect(type)} as name: #{inspect(name)}")
-    Supervisor.start_child(subsupervisor, [type, id, [name: name]])
+  def add(subsupervisor, id, type) do
+    Logger.debug("Adding id: #{inspect(id)}, type: #{inspect(type)}")
+    Supervisor.start_child(subsupervisor, [type, id])
   end
 end

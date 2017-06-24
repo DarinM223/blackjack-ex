@@ -8,6 +8,9 @@ defmodule Blackjack.Supervisor do
 
   @registry Application.get_env(:blackjack, :default_registry)
   @default_deps [
+    supervisor: Blackjack.Supervisor,
+    deck_supervisor: Blackjack.Deck.Supervisor,
+    player_supervisor: Blackjack.Player.Supervisor,
     deck: Blackjack.Deck,
     stash: Blackjack.Player.Stash,
     info: Blackjack.Player.Info,
@@ -16,13 +19,13 @@ defmodule Blackjack.Supervisor do
   ]
 
   def start_link(deps \\ @default_deps) do
-    Supervisor.start_link(__MODULE__, deps)
+    Supervisor.start_link(__MODULE__, deps, name: deps[:supervisor])
   end
 
   def init(deps) do
     children = [
-      supervisor(Blackjack.Player.Supervisor, [deps]),
-      supervisor(Blackjack.Deck.Supervisor, [deps])
+      supervisor(Blackjack.Player.Supervisor, [deps, [name: deps[:player_supervisor]]]),
+      supervisor(Blackjack.Deck.Supervisor, [deps, [name: deps[:deck_supervisor]]])
     ]
 
     supervise(children, strategy: :one_for_one)

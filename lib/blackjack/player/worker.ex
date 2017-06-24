@@ -13,7 +13,8 @@ defmodule Blackjack.Player.Worker do
   alias Blackjack.Player
 
   def start_link(deps, type, id, opts \\ []) do
-    GenServer.start_link(__MODULE__, {deps, type, id}, opts)
+    name = Player.registry_name(id, deps[:registry])
+    GenServer.start_link(__MODULE__, {deps, type, id}, [{:name, name} | opts])
   end
 
   def init({deps, type, id}) do

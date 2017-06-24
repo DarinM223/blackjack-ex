@@ -5,8 +5,8 @@ defmodule Blackjack.Deck.Supervisor do
 
   use Supervisor
 
-  def start_link(deps) do
-    Supervisor.start_link(__MODULE__, deps)
+  def start_link(deps, opts \\ []) do
+    Supervisor.start_link(__MODULE__, deps, opts)
   end
 
   def init(deps) do
