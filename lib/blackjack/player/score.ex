@@ -5,6 +5,17 @@ defmodule Blackjack.Player.Score do
 
   alias Blackjack.Deck.Card
 
+  @doc """
+  Calculates the score of a hand.
+
+  ## Example
+
+      iex> alias Blackjack.Player.Score
+      iex> alias Blackjack.Deck.Card
+      iex> Score.score([%Card{value: 2}, %Card{value: 3}, %Card{value: 4}])
+      9
+
+  """
   def score(cards), do: _score(cards, 0, 0)
 
   defp _score([], score, _), do: score

@@ -1,4 +1,10 @@
 defmodule Blackjack.Player.Subsupervisor do
+  @moduledoc """
+  Supervisor for player workers.
+  Workers are dynamically started in the supervisor
+  through the simple one for one supervision strategy.
+  """
+
   alias Blackjack.Player
   use Supervisor
 
@@ -15,6 +21,9 @@ defmodule Blackjack.Player.Subsupervisor do
     supervise(children, strategy: :simple_one_for_one)
   end
 
+  @doc """
+  Adds a player worker to the supervisor.
+  """
   def add(subsupervisor, id, type, deps) do
     name = Player.registry_name(id, deps[:registry])
     Logger.debug("Adding id: #{inspect(id)}, type: #{inspect(type)} as name: #{inspect(name)}")

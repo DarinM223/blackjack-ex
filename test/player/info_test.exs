@@ -1,44 +1,43 @@
 defmodule InfoTest do
   use ExUnit.Case, async: true
 
+  doctest Blackjack.Player.Info
+
   alias Blackjack.Player.Info
-  alias Blackjack.Player.Subsupervisor
   alias Blackjack.Testing
 
   require Logger
 
   setup context do
-    {:ok, _} = Testing.start(context.test)
-    {:ok, test: context.test}
+    deps = Testing.start(context.test)
+    {:ok, deps: deps}
   end
 
-  test "add to empty array", %{test: test} do
-    info = Testing.name(test, :info)
-    Enum.map(1..3, fn _ -> Info.add(info) end)
-    results = Info.get(info)
+  test "add to empty array", %{deps: deps} do
+    Enum.map(1..3, fn _ -> Info.add(deps[:info]) end)
+    results = Info.get(deps[:info])
     assert List.keyfind(results, 2, 0) != nil
     assert List.keyfind(results, 1, 0) != nil
     assert List.keyfind(results, 0, 0) != nil
   end
 
-  test "add different types", %{test: test} do
-    info = Testing.name(test, :info)
-    Info.add(info, :alien)
-    Info.add(info, :borg)
-    Info.add(info, :donkey)
+  test "add different types", %{deps: deps} do
+    Info.add(deps[:info], :alien)
+    Info.add(deps[:info], :borg)
+    Info.add(deps[:info], :donkey)
 
-    assert {0, :alien} in Info.get(info)
-    assert {1, :borg} in Info.get(info)
-    assert {2, :donkey} in Info.get(info)
+    result = Info.get(deps[:info])
+    assert {0, :alien} in result
+    assert {1, :borg} in result
+    assert {2, :donkey} in result
   end
 
-  test "removes from array", %{test: test} do
-    info = Testing.name(test, :info)
+  test "removes from array", %{deps: deps} do
     0..3
-    |> Stream.map(fn id -> {id, Info.add(info)} end)
+    |> Stream.map(fn id -> {id, Info.add(deps[:info])} end)
     |> Enum.each(&kill_process(&1, [0, 2]))
 
-    results = Info.get(info)
+    results = Info.get(deps[:info])
 
     Logger.debug("results: #{inspect results}")
 

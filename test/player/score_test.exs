@@ -1,5 +1,6 @@
 defmodule ScoreTest do
   use ExUnit.Case, async: true
+  doctest Blackjack.Player.Score
 
   import Blackjack.Player.Score
   alias Blackjack.Deck.Card

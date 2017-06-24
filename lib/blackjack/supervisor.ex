@@ -1,4 +1,9 @@
 defmodule Blackjack.Supervisor do
+  @moduledoc """
+  The main supervisor for the Blackjack application.
+  Supervises the player supervisor and the deck supervisor.
+  """
+
   use Supervisor
 
   @registry Application.get_env(:blackjack, :default_registry)

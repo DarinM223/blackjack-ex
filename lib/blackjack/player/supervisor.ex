@@ -1,4 +1,8 @@
 defmodule Blackjack.Player.Supervisor do
+  @moduledoc """
+  Supervisor for player related workers and supervisors.
+  """
+
   use Supervisor
 
   @default_type Application.get_env(:blackjack, :default_player_type)

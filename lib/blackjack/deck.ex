@@ -1,5 +1,9 @@
 
 defmodule Blackjack.Deck do
+  @moduledoc """
+  A deck worker process.
+  """
+
   alias Blackjack.Deck
 
   defmodule Card, do: defstruct value: nil, suite: nil, public: true
@@ -21,6 +25,17 @@ defmodule Blackjack.Deck do
   Draws a card from the deck.
   If the deck worker crashes, it retries
   the draw call after waiting a certain period of time.
+
+  ## Examples
+
+      iex> {:ok, deck} = Blackjack.Deck.start_link
+      iex> Blackjack.Deck.draw(deck)
+      %Blackjack.Deck.Card{public: true, suite: :hearts, value: 1}
+
+      iex> {:ok, deck} = Blackjack.Deck.start_link
+      iex> Blackjack.Deck.draw(deck, true)
+      %Blackjack.Deck.Card{public: false, suite: :hearts, value: 1}
+
   """
   def draw(deck, face_down \\ false) do
     try do

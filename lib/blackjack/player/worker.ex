@@ -1,4 +1,10 @@
 defmodule Blackjack.Player.Worker do
+  @moduledoc """
+  A player worker. A worker handles messages differently
+  based on the type which is passed in the start_link function.
+  Right now a worker can only be a normal player or a dealer.
+  """
+
   use GenServer
 
   require Logger
@@ -9,8 +15,6 @@ defmodule Blackjack.Player.Worker do
   def start_link(deps, type, id, opts \\ []) do
     GenServer.start_link(__MODULE__, {deps, type, id}, opts)
   end
-
-  # GenServer API
 
   def init({deps, type, id}) do
     # Modifies exits to call terminate().

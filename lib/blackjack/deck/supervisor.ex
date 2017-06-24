@@ -1,4 +1,8 @@
 defmodule Blackjack.Deck.Supervisor do
+  @moduledoc """
+  Supervises the deck worker.
+  """
+
   use Supervisor
 
   def start_link(deps) do

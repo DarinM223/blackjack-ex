@@ -1,4 +1,9 @@
 defmodule Blackjack.Player.Stash do
+  @moduledoc """
+  Stashes valid player state so it can be
+  restored when the player worker crashes.
+  """
+
   def start_link(opts \\ []) do
     Agent.start_link(fn -> %{} end, opts)
   end
