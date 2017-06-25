@@ -24,21 +24,20 @@ defmodule Blackjack.Player.Worker do
     {:ok, {type, player, deps}}
   end
 
-  def handle_call(:turn, _from, {:dealer, dealer, _} = state) do
+  def handle_call({:turn, _}, _from, {:dealer, dealer, _} = state) do
     Logger.debug("Blackjack.Player.Dealer :turn: state: #{inspect(dealer)}")
     score = Player.Score.score(dealer.cards[0])
     action = if score >= 17, do: :stand, else: :hit
-    {:reply, [action], state}
+    {:reply, action, state}
   end
 
-  def handle_call(:turn, _from, {_, player, _} = state) do
+  def handle_call({:turn, index}, _from, {_, player, _} = state) do
     Logger.debug("Blackjack.Player.Worker :turn: state: #{inspect(player)}")
-    actions =
-      player.cards
-      |> Map.values
-      |> Stream.map(&Player.Score.score/1)
-      |> Enum.map(&ask_action/1)
-    {:reply, actions, state}
+    action =
+      player.cards[index]
+      |> Player.Score.score
+      |> ask_action(index)
+    {:reply, action, state}
   end
 
   def handle_call(:money, _from, {_, player, _} = state) do
@@ -121,9 +120,12 @@ defmodule Blackjack.Player.Worker do
     Blackjack.Player.Stash.save(deps[:stash], player.id, player)
   end
 
-  defp ask_action(_) do
+  defp ask_action(score, idx) when score > 21, do: :stand
+
+  defp ask_action(score, idx) do
     actions = [hit: 0, stand: 1]
 
+    IO.puts("Hand ##{idx + 1} has score: #{inspect(score)}")
     IO.puts("Available actions: ")
     Enum.each(actions, fn {action, input} ->
       IO.puts("#{input}: #{action}")

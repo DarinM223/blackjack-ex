@@ -42,11 +42,20 @@ defmodule Blackjack do
   end
 
   defp turns do
-    Logger.debug("Blackjack.turns:")
     Player.Info.get(Player.Info)
-    |> Stream.map(fn {id, _} -> {id, Player.turn(id)} end)
-    |> Stream.flat_map(&expand_actions/1)
-    |> Enum.each(fn {id, index, action} -> Player.apply_action(id, index, action) end)
+    |> Stream.map(fn {id, _} -> {id, Player.cards(id)} end)
+    |> Stream.flat_map(fn {id, map} -> map |> Map.keys |> Stream.map(&{id, &1}) end)
+    |> Enum.each(fn {id, index} -> turn(id, index) end)
+  end
+
+  defp turn(id, index) do
+    action = Player.turn(id, index)
+    apply_action({id, index, action})
+
+    case action do
+      :stand -> :ok
+      _ -> turn(id, index)
+    end
   end
 
   defp check_wins do
@@ -64,7 +73,28 @@ defmodule Blackjack do
     |> Stream.map(fn {id, _} -> {id, Player.cards(id)} end)
     |> Stream.flat_map(&expand_scores/1)
     |> Stream.map(fn {id, index, score} -> {id, index, player_won(score, dealer_score)} end)
-    |> Enum.each(fn {id, index, action} -> Player.apply_action(id, index, action) end)
+    |> Enum.each(&apply_action/1)
+  end
+
+  defp log({id, index, :hit}) do
+    IO.puts("Player #{id}'s hand ##{index + 1} hit")
+  end
+  defp log({id, index, :stand}) do
+    IO.puts("Player #{id}'s hand ##{index + 1} stood")
+  end
+  defp log({id, index, :win}) do
+    IO.puts("Player #{id}'s hand ##{index + 1} won")
+  end
+  defp log({id, index, :lose}) do
+    IO.puts("Player #{id}'s hand ##{index + 1} lost")
+  end
+  defp log({id, index, :push}) do
+    IO.puts("Player #{id}'s hand ##{index + 1} pushed")
+  end
+
+  defp apply_action({id, index, action} = state) do
+    log(state)
+    Player.apply_action(id, index, action)
   end
 
   defp ask_leave do

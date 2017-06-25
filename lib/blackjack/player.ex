@@ -46,14 +46,14 @@ defmodule Blackjack.Player do
       iex> deps = Blackjack.Testing.start(test_name)
       iex> Blackjack.Player.Info.add(deps[:info], :dealer)
       iex> Blackjack.Player.deal(0, deps[:registry])
-      iex> Blackjack.Player.turn(0, deps[:registry])
-      [:hit]
+      iex> Blackjack.Player.turn(0, 0, deps[:registry])
+      :hit
 
   """
-  def turn(id, registry \\ @default_registry) do
+  def turn(id, index, registry \\ @default_registry) do
     Logger.debug("Blackjack.Player.turn: id: #{id}")
     IO.puts("Player #{id}'s turn:")
-    retry(&GenServer.call/3, [registry_name(id, registry), :turn, :infinity])
+    retry(&GenServer.call/3, [registry_name(id, registry), {:turn, index}, :infinity])
   end
 
   @doc """
@@ -61,6 +61,7 @@ defmodule Blackjack.Player do
   """
   def ask_bet(id, registry \\ @default_registry) do
     Logger.debug("Blackjack.Player.ask_bet: id: #{id}")
+    IO.puts("Player #{id} has money: #{money(id, registry)}")
     IO.puts("Player #{id}'s bet")
     retry(&GenServer.call/3, [registry_name(id, registry), :ask_bet, :infinity])
   end
